@@ -106,8 +106,8 @@
 
     if (!reduceMotion) {
       setTimeout(() => {
-        Fireworks.launch(Fireworks.width * 0.25, Fireworks.height * 0.2, 'peony', { quiet: true });
-        setTimeout(() => Fireworks.launch(Fireworks.width * 0.75, Fireworks.height * 0.16, 'ring', { quiet: true }), 380);
+        Fireworks.launch(Fireworks.width * 0.25, Fireworks.height * 0.2, 'peony', { silent: true });
+        setTimeout(() => Fireworks.launch(Fireworks.width * 0.75, Fireworks.height * 0.16, 'ring', { silent: true }), 380);
       }, 900);
     }
   }
@@ -626,21 +626,36 @@
     new IntersectionObserver(([en]) => { visible = en.isIntersecting; }, { threshold: 0.3 }).observe($('.hero'));
     const fire = () => {
       if (visible && !document.hidden) {
-        Fireworks.launch(rand(Fireworks.width * 0.1, Fireworks.width * 0.9), rand(Fireworks.height * 0.08, Fireworks.height * 0.32), undefined, { quiet: true });
+        Fireworks.launch(rand(Fireworks.width * 0.1, Fireworks.width * 0.9), rand(Fireworks.height * 0.08, Fireworks.height * 0.32), undefined, { silent: true });
       }
       setTimeout(fire, rand(2800, 5600));
     };
     setTimeout(fire, 2600);
   }
 
+  // Sound is on by default and starts with the guest's first tap. Muting is remembered.
   function setupSound() {
     const btn = $('#sound');
-    btn.addEventListener('click', () => {
-      const on = !Sound.on;
-      Sound.setOn(on);
+    const PREF = 'diwali-party-sound';
+    const show = (on) => {
       btn.setAttribute('aria-pressed', String(on));
       btn.setAttribute('aria-label', on ? 'Turn festive sounds off' : 'Turn festive sounds on');
       btn.textContent = on ? '🔔' : '🔇';
+    };
+    if (store.get(PREF) === 'off') Sound.setOn(false);
+    show(Sound.on);
+
+    // Browsers only allow audio to start inside a tap, click or key press.
+    const unlock = (e) => { if (!e.target.closest || !e.target.closest('#sound')) Sound.unlock(); };
+    ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach((type) => {
+      document.addEventListener(type, unlock, { capture: true, passive: true });
+    });
+
+    btn.addEventListener('click', () => {
+      const on = !Sound.on;
+      Sound.setOn(on);
+      store.set(PREF, on ? 'on' : 'off');
+      show(on);
       if (on) { Sound.bell(523.25, 0.22); Sound.bell(783.99, 0.15, 0.2); }
     });
   }

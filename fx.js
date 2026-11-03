@@ -12,12 +12,22 @@
    * Sound: temple bells, rockets and crackers, synthesised with Web Audio
    * ------------------------------------------------------------------ */
   const Sound = (() => {
-    let ac = null, master = null, noiseBuf = null, on = false;
+    // On by default; browsers only allow it to start after the guest's first tap (see unlock()).
+    let ac = null, master = null, noiseBuf = null, on = true;
 
-    function ctx() {
+    // iPhones mute web audio when the silent switch is on. Asking for a "playback" session
+    // (Safari 16.4+) makes the page's sounds behave like a video, so they play anyway.
+    function setSession(type) {
+      try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) { /* unsupported */ }
+    }
+
+    // Must be called from inside a tap/click/keypress handler.
+    function unlock() {
+      if (!on) return;
+      setSession('playback');
       if (!ac) {
         const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return null;
+        if (!AC) return;
         ac = new AC();
         master = ac.createGain();
         master.gain.value = 0.7;
@@ -28,7 +38,13 @@
         const d = noiseBuf.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
-      if (ac.state === 'suspended') ac.resume();
+      if (ac.state !== 'running') ac.resume().catch(() => {});
+    }
+
+    // Sounds only play once the guest has tapped (so nothing ever blares on its own).
+    function ctx() {
+      if (!on || !ac) return null;
+      if (ac.state === 'suspended') ac.resume().catch(() => {});
       return ac;
     }
 
@@ -87,9 +103,19 @@
     const note = (i, vol = 0.2) => bell(SCALE[Math.max(0, i) % SCALE.length], vol);
 
     return {
-      bell, boom, crackle, whoosh, note,
-      setOn(v) { on = !!v; if (on) ctx(); },
+      bell, boom, crackle, whoosh, note, unlock,
+      setOn(v) {
+        on = !!v;
+        if (on) {
+          unlock();
+        } else {
+          // Muting releases the audio entirely, so other apps' music can play again.
+          if (ac && ac.state === 'running') ac.suspend().catch(() => {});
+          setSession('auto');
+        }
+      },
       get on() { return on; },
+      get state() { return ac ? ac.state : 'none'; },
     };
   })();
 
@@ -156,9 +182,9 @@
       // the bright flash at the centre
       spawn({ x, y, px: x, py: y, vx: 0, vy: 0, life: 0, max: 9, color: '#fff7e0', size: 18 * s, flash: true, drag: 1, g: 0 });
 
-      if (Sound.on) {
-        Sound.boom(opts.quiet ? 0.18 : rand(0.32, 0.5));
-        if (type === 'willow' || Math.random() < 0.45) Sound.crackle(opts.quiet ? 8 : 16);
+      if (Sound.on && !opts.silent) {
+        Sound.boom(rand(0.32, 0.5));
+        if (type === 'willow' || Math.random() < 0.45) Sound.crackle(16);
       }
       start();
     }
@@ -167,7 +193,7 @@
       if (y > H * 0.78) { burst(x, y, type, opts); return; }
       const sx = x + rand(-30, 30);
       rockets.push({ sx, sy: H + 8, x: sx, y: H + 8, tx: x, ty: y, t: 0, dur: rand(34, 44), type, opts });
-      if (Sound.on) Sound.whoosh(opts.quiet ? 0.04 : 0.09);
+      if (Sound.on && !opts.silent) Sound.whoosh(0.09);
       start();
     }
 

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Only this site's own files may load. The single outside connection allowed is the host's own Google Apps Script (for RSVPs). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <title>You're invited · Diwali Night 🪔</title>
+  <meta name="description" content="Tap to open your Diwali invite ✨ Diyas, mithai, cards and good company.">
+  <meta name="theme-color" content="#1a0730">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="You're invited to a Diwali night! 🪔">
+  <meta property="og:description" content="Tap to open your invite ✨ Diyas, mithai, cards and good company.">
+  <meta property="og:url" content="https://dhruvabisht.github.io/diwali-party/">
+  <meta property="og:image" content="https://dhruvabisht.github.io/diwali-party/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A glowing diya under a marigold garland: you're invited to a Diwali night">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preload" href="fonts/yatra-one.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/poppins-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script src="sealed.js" defer></script>
+  <script src="fx.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="is-loading">
+
+  <!-- Shared SVG gradients used by the diyas, lanterns and flames -->
+  <svg width="0" height="0" class="defs" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="g-flame" cx="50%" cy="78%" r="72%">
+        <stop offset="0" stop-color="#fffbe0"/>
+        <stop offset=".32" stop-color="#ffe066"/>
+        <stop offset=".66" stop-color="#ff9a1f"/>
+        <stop offset="1" stop-color="#ff3d1f"/>
+      </radialGradient>
+      <radialGradient id="g-glow">
+        <stop offset="0" stop-color="#ffd27a" stop-opacity=".95"/>
+        <stop offset=".38" stop-color="#ff9a2e" stop-opacity=".38"/>
+        <stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="g-clay" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#e2692e"/>
+        <stop offset=".55" stop-color="#ad401a"/>
+        <stop offset="1" stop-color="#6b240e"/>
+      </linearGradient>
+      <linearGradient id="g-oil" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5a2a08"/>
+        <stop offset="1" stop-color="#c9781e"/>
+      </linearGradient>
+      <linearGradient id="g-lantern-pink" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ff7ab8"/>
+        <stop offset=".5" stop-color="#e8197f"/>
+        <stop offset="1" stop-color="#ff8a1f"/>
+      </linearGradient>
+      <linearGradient id="g-lantern-gold" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff0a8"/>
+        <stop offset=".5" stop-color="#ffb000"/>
+        <stop offset="1" stop-color="#ff6a00"/>
+      </linearGradient>
+      <radialGradient id="g-lglow">
+        <stop offset="0" stop-color="#ffb3d6" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#ff7ab8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <div class="sky" aria-hidden="true"></div>
+  <div class="toran" aria-hidden="true"></div>
+  <div class="lantern-wrap left" data-lantern="pink" aria-hidden="true"></div>
+  <div class="lantern-wrap right" data-lantern="gold" aria-hidden="true"></div>
+  <div class="petals" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <noscript>
+    <p class="noscript">🪔 This invite needs JavaScript switched on to open.</p>
+  </noscript>
+
+  <!-- ============ Lock screen: shown only when someone opens the site without the key ============ -->
+  <main id="lock" class="lock" hidden>
+    <div class="lock-card">
+      <div class="lock-diya" data-diya></div>
+      <p class="deva" lang="hi">शुभ दीपावली</p>
+      <h1 id="lock-title">This invite is for special guests</h1>
+      <p id="lock-text">If you were sent an invite link, open it exactly as it was sent. The magic is in the bit after the <b>#</b>.</p>
+    </div>
+  </main>
+
+  <!-- ============ The invite (filled in after the details are unlocked) ============ -->
+  <main id="invite" hidden>
+
+    <header class="hero" id="top">
+      <p class="deva rise" lang="hi">शुभ दीपावली</p>
+      <p class="kicker rise"><span data-f="host"></span> invites you to</p>
+      <h1 class="title rise">A Diwali Night</h1>
+      <p class="tagline rise">of lights, mithai &amp; masti</p>
+      <div class="hero-diya rise" data-diya></div>
+      <p class="when-pill rise"><span data-f="date"></span><span class="dot">·</span><span data-f="time"></span></p>
+
+      <div class="countdown rise" id="countdown" aria-live="off">
+        <div class="cd"><b data-cd="d">00</b><span>days</span></div>
+        <div class="cd"><b data-cd="h">00</b><span>hrs</span></div>
+        <div class="cd"><b data-cd="m">00</b><span>min</span></div>
+        <div class="cd"><b data-cd="s">00</b><span>sec</span></div>
+      </div>
+      <p class="countdown-msg" id="countdown-msg" hidden></p>
+
+      <div class="hero-cta rise">
+        <button class="btn btn-gold" data-scroll="rsvp">RSVP in two taps</button>
+        <button class="btn btn-ghost" data-scroll="where">Where &amp; when?</button>
+      </div>
+      <p class="hint" id="hint">psst… tap anywhere for fireworks 🎆</p>
+    </header>
+
+    <div class="wrap">
+
+      <!-- ---------------- RSVP ---------------- -->
+      <section class="card" id="rsvp" aria-labelledby="rsvp-h">
+        <span class="emblem" aria-hidden="true">💌</span>
+        <span class="eyebrow">RSVP</span>
+        <h2 id="rsvp-h">Will you light up the night with us?</h2>
+
+        <div id="rsvp-step1">
+          <p class="soft">No pressure, no phone calls. Just your name and one tap.</p>
+          <label class="field">
+            <span class="field-label">Your name</span>
+            <input id="rsvp-name" type="text" autocomplete="name" maxlength="60" placeholder="e.g. Aoife" enterkeyhint="done">
+          </label>
+          <div class="choices" role="group" aria-label="Are you coming?">
+            <button class="choice yes" data-status="yes"><span class="emoji" aria-hidden="true">🪔</span><span>I'm in!</span></button>
+            <button class="choice maybe" data-status="maybe"><span class="emoji" aria-hidden="true">🤔</span><span>Maybe</span></button>
+            <button class="choice no" data-status="no"><span class="emoji" aria-hidden="true">😢</span><span>Can't make it</span></button>
+          </div>
+          <p class="form-msg" id="rsvp-msg" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="rsvp-step2" hidden>
+          <div class="done">
+            <div class="done-emoji" id="done-emoji" aria-hidden="true">🎉</div>
+            <h3 id="done-title"></h3>
+            <p id="done-text"></p>
+          </div>
+
+          <div class="fallback" id="rsvp-fallback" hidden>
+            <p id="fallback-text"></p>
+            <a class="btn btn-wa" id="fallback-wa" target="_blank" rel="noopener noreferrer">Send it on WhatsApp</a>
+          </div>
+
+          <div class="extras" id="extras">
+            <p class="extras-h">A few extras <span>(all optional, you're already on the list)</span></p>
+
+            <div class="extra" id="extra-plus">
+              <p class="extra-label">Bringing anyone?</p>
+              <div class="chips" data-group="plusOnes">
+                <button class="chip" data-value="0" aria-pressed="true">Just me</button>
+                <button class="chip" data-value="1" aria-pressed="false">+1</button>
+                <button class="chip" data-value="2" aria-pressed="false">+2</button>
+                <button class="chip" data-value="3" aria-pressed="false">+3</button>
+              </div>
+            </div>
+
+            <div class="extra" id="extra-food">
+              <p class="extra-label">Food preferences</p>
+              <div class="chips" data-group="food">
+                <button class="chip" data-value="Eats everything" aria-pressed="false">Eat everything 😋</button>
+                <button class="chip" data-value="Vegetarian" aria-pressed="false">Vegetarian 🥦</button>
+                <button class="chip" data-value="Vegan" aria-pressed="false">Vegan 🌱</button>
+                <button class="chip" data-value="other" aria-pressed="false">Allergy / other ✍️</button>
+              </div>
+              <input id="food-other" class="input-sm" type="text" maxlength="120" placeholder="e.g. no nuts, please!" hidden>
+            </div>
+
+            <div class="extra">
+              <p class="extra-label" id="msg-label">Anything you'd like to share?</p>
+              <textarea id="rsvp-message" rows="3" maxlength="600" placeholder="A message, a song request, a Diwali wish… (totally optional)"></textarea>
+            </div>
+
+            <button class="btn btn-gold btn-block" id="save-extras">Save extras ✨</button>
+            <p class="form-msg" id="extras-msg" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="after-rsvp" id="after-yes" hidden>
+            <p>Pop it in your calendar so you don't forget:</p>
+            <div class="btn-row">
+              <a class="btn btn-ghost" data-cal="google" target="_blank" rel="noopener noreferrer">Google Calendar</a>
+              <button class="btn btn-ghost" data-cal="apple">Apple Calendar</button>
+            </div>
+          </div>
+
+          <button class="linkish" id="change-rsvp">Change my answer</button>
+        </div>
+      </section>
+
+      <!-- ---------------- Where & when ---------------- -->
+      <section class="card" id="where" aria-labelledby="where-h">
+        <span class="emblem" aria-hidden="true">📍</span>
+        <span class="eyebrow">Where &amp; when</span>
+        <h2 id="where-h">Come over to mine!</h2>
+
+        <div class="when-grid">
+          <div class="when-box"><span aria-hidden="true">🗓️</span><b data-f="date"></b></div>
+          <div class="when-box"><span aria-hidden="true">🕖</span><b data-f="time"></b></div>
+        </div>
+
+        <address id="address"></address>
+
+        <p class="mini-h">Get directions</p>
+        <div class="btn-row">
+          <a class="btn btn-gold" id="map-google" target="_blank" rel="noopener noreferrer">Google Maps</a>
+          <a class="btn btn-gold" id="map-apple" target="_blank" rel="noopener noreferrer">Apple Maps</a>
+        </div>
+
+        <div class="arrival">
+          <p class="arrival-note"><span aria-hidden="true">📞</span> <span data-f="arrival"></span></p>
+          <div class="btn-row three">
+            <a class="btn btn-ghost" id="call-me">Call</a>
+            <a class="btn btn-ghost" id="text-me">Text</a>
+            <a class="btn btn-wa" id="wa-me" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          </div>
+          <p class="tiny">or <span data-f="phoneDisplay"></span></p>
+        </div>
+
+        <p class="mini-h">Don't forget!</p>
+        <div class="btn-row">
+          <a class="btn btn-ghost" data-cal="google" target="_blank" rel="noopener noreferrer">Add to Google Calendar</a>
+          <button class="btn btn-ghost" data-cal="apple">Add to Apple Calendar</button>
+        </div>
+      </section>
+
+      <!-- ---------------- The plan ---------------- -->
+      <section class="card" id="plan" aria-labelledby="plan-h">
+        <span class="emblem" aria-hidden="true">✨</span>
+        <span class="eyebrow">The plan for the night</span>
+        <h2 id="plan-h">What's on</h2>
+        <div class="tiles">
+          <div class="tile"><span class="big" aria-hidden="true">🍛</span><h3>Dinner &amp; mithai</h3><p>Diwali food and far too many sweets. Pace yourself.</p></div>
+          <div class="tile"><span class="big" aria-hidden="true">🃏</span><h3>Card night</h3><p>A Diwali tradition, said to bring luck for the year. Never played? You'll pick it up in five minutes.</p></div>
+          <div class="tile"><span class="big" aria-hidden="true">🎶</span><h3>Music</h3><p>Good tunes all night. Expect a little Bollywood.</p></div>
+          <div class="tile"><span class="big" aria-hidden="true">💬</span><h3>Good conversations</h3><p>The best part. Stay as long as you like.</p></div>
+        </div>
+        <div class="dress">
+          <p class="dress-k">Dress code</p>
+          <p class="dress-v">Festive &amp; sparkly ✨</p>
+          <p class="dress-t">Wear your brightest, shiniest, happiest outfit. Sequins very much encouraged.</p>
+        </div>
+      </section>
+
+      <!-- ---------------- Light the diyas game ---------------- -->
+      <section class="card" id="game" aria-labelledby="game-h">
+        <span class="emblem" aria-hidden="true">🪔</span>
+        <span class="eyebrow">A little game</span>
+        <h2 id="game-h">Light the diyas</h2>
+        <p class="soft">On Diwali, every home glows with rows of little clay lamps to welcome light and good luck. Tap each one to light it.</p>
+        <div class="shelf" id="shelf"></div>
+        <p class="game-count" id="game-count" aria-live="polite">0 of 7 lit</p>
+        <div class="reveal" id="reveal" hidden>
+          <div class="reveal-rangoli" data-rangoli="bloom"></div>
+          <h3>Shubh Deepavali! ✨</h3>
+          <p>You lit the whole row. Legend says Lakshmi, the goddess of good fortune, visits the brightest homes, so we're feeling very lucky about card night.</p>
+          <button class="btn btn-ghost" id="relight">Light them again</button>
+        </div>
+      </section>
+
+      <!-- ---------------- Diwali 101 ---------------- -->
+      <section class="card" id="d101" aria-labelledby="d101-h">
+        <span class="emblem" aria-hidden="true">🌸</span>
+        <span class="eyebrow">New to Diwali?</span>
+        <h2 id="d101-h">Diwali in 60 seconds</h2>
+        <p class="intro"><b>Diwali</b> (from <i>Deepavali</i>, "a row of lamps") is the festival of lights, celebrated by over a billion people around the world. It's about light winning over darkness, good over evil, and starting fresh with the people you love. Think Christmas and New Year's Eve rolled into one, with more sweets and a lot more sparkle.</p>
+        <p class="tap-hint">Tap a card to flip it</p>
+        <div class="flips">
+          <button class="flip" aria-pressed="false"><span class="flip-inner"><span class="face front"><span class="big" aria-hidden="true">🏹</span><span class="t">The story</span><span class="tap">tap</span></span><span class="face back">Lord Rama came home after 14 years in exile and defeating the demon king Ravana. His whole city lit lamps to welcome him back.</span></span></button>
+          <button class="flip" aria-pressed="false"><span class="flip-inner"><span class="face front"><span class="big" aria-hidden="true">🪔</span><span class="t">Diyas</span><span class="tap">tap</span></span><span class="face back">Little clay oil lamps fill every window and doorway to welcome Lakshmi, the goddess of luck and prosperity.</span></span></button>
+          <button class="flip" aria-pressed="false"><span class="flip-inner"><span class="face front"><span class="big" aria-hidden="true">🌸</span><span class="t">Rangoli</span><span class="tap">tap</span></span><span class="face back">Bright patterns made of coloured powder, rice or flower petals at the front door. They say "welcome" to guests and good luck.</span></span></button>
+          <button class="flip" aria-pressed="false"><span class="flip-inner"><span class="face front"><span class="big" aria-hidden="true">🍬</span><span class="t">Mithai</span><span class="tap">tap</span></span><span class="face back">Sweets! Gulab jamun, kaju katli, laddoos, jalebi… Friends swap boxes of them. Saying no is not really an option.</span></span></button>
+          <button class="flip" aria-pressed="false"><span class="flip-inner"><span class="face front"><span class="big" aria-hidden="true">🃏</span><span class="t">Card night</span><span class="tap">tap</span></span><span class="face back">Legend says Goddess Parvati played dice with Lord Shiva on Diwali night and blessed everyone who plays games that night with a lucky year.</span></span></button>
+          <button class="flip" aria-pressed="false"><span class="flip-inner"><span class="face front"><span class="big" aria-hidden="true">🎆</span><span class="t">Sparkle</span><span class="tap">tap</span></span><span class="face back">New clothes, lights on every balcony and a sky full of fireworks. We're keeping ours virtual: tap anywhere on this page!</span></span></button>
+        </div>
+
+        <h3 class="sub-h">Say it like a desi 🗣️</h3>
+        <ul class="phrases">
+          <li class="phrase"><div><p class="hi" lang="hi">शुभ दीपावली!</p><p class="ro">Shubh Deepavali!</p><p class="en">Happy Diwali! <i>(shubh dee-PAA-vuh-lee)</i></p></div><button class="say" data-hi="शुभ दीपावली" data-ro="Shubh Deepavali" aria-label="Hear Shubh Deepavali">🔊</button></li>
+          <li class="phrase"><div><p class="hi" lang="hi">एक और?</p><p class="ro">Ek aur?</p><p class="en">One more? (About sweets. Constantly.)</p></div><button class="say" data-hi="एक और?" data-ro="Ake or" aria-label="Hear Ek aur">🔊</button></li>
+          <li class="phrase"><div><p class="hi" lang="hi">बस, बस!</p><p class="ro">Bas, bas!</p><p class="en">Enough, enough! (Nobody will listen.)</p></div><button class="say" data-hi="बस, बस!" data-ro="Bus, bus" aria-label="Hear Bas bas">🔊</button></li>
+          <li class="phrase"><div><p class="hi" lang="hi">क्या बात है!</p><p class="ro">Kya baat hai!</p><p class="en">Wow, amazing! (Use on the food. Or a great hand of cards.)</p></div><button class="say" data-hi="क्या बात है!" data-ro="Kya baat hai" aria-label="Hear Kya baat hai">🔊</button></li>
+        </ul>
+      </section>
+
+      <div class="divider" data-rangoli="small" aria-hidden="true"></div>
+
+      <footer class="foot">
+        <p>Made with 🪔 and a lot of mithai by <span data-f="host"></span></p>
+        <p class="tiny">No cookies, no trackers. Just good vibes.</p>
+      </footer>
+    </div>
+  </main>
+
+  <button class="sound-toggle" id="sound" aria-pressed="false" aria-label="Turn festive sounds on">🔇</button>
+
+</body>
+</html>

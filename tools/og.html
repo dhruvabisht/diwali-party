@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- Source for og.jpg, the link-preview image WhatsApp/iMessage show. Contains no private details.
+     Re-render: open at 1200x630 in a browser and screenshot (see README). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../style.css">
+<style>
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body.og { margin: 0; }
+  .og-wrap { position: relative; z-index: 2; height: 630px; display: grid; grid-template-columns: 430px 1fr; align-items: center; padding: 70px 70px 0 60px; }
+  .og-diya { width: 400px; }
+  .og-text { text-align: left; }
+  .og-text .deva { font-size: 64px; line-height: 1.2; margin: 0; }
+  .og-text .kicker { font-size: 34px; margin: 4px 0 0; }
+  .og-text .title { font-size: 104px; margin: 0; }
+  .og-text .tagline { font-size: 34px; }
+  .og-pill { display: inline-block; margin-top: 22px; padding: 12px 26px; border-radius: 999px; border: 1.5px solid var(--line); background: rgba(255, 207, 90, .12); font: 600 26px var(--body); color: var(--text); }
+  .lantern-wrap { animation: none; width: 74px; }
+  .lantern-wrap.left { left: 18px; } .lantern-wrap.right { right: 18px; }
+  .petals, .hint, #fx { display: none; }
+</style>
+</head>
+<body class="og">
+  <svg width="0" height="0" class="defs" aria-hidden="true"><defs>
+    <radialGradient id="g-flame" cx="50%" cy="78%" r="72%"><stop offset="0" stop-color="#fffbe0"/><stop offset=".32" stop-color="#ffe066"/><stop offset=".66" stop-color="#ff9a1f"/><stop offset="1" stop-color="#ff3d1f"/></radialGradient>
+    <radialGradient id="g-glow"><stop offset="0" stop-color="#ffd27a" stop-opacity=".95"/><stop offset=".38" stop-color="#ff9a2e" stop-opacity=".38"/><stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-clay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2692e"/><stop offset=".55" stop-color="#ad401a"/><stop offset="1" stop-color="#6b240e"/></linearGradient>
+    <linearGradient id="g-oil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a2a08"/><stop offset="1" stop-color="#c9781e"/></linearGradient>
+    <linearGradient id="g-lantern-pink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7ab8"/><stop offset=".5" stop-color="#e8197f"/><stop offset="1" stop-color="#ff8a1f"/></linearGradient>
+    <linearGradient id="g-lantern-gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a8"/><stop offset=".5" stop-color="#ffb000"/><stop offset="1" stop-color="#ff6a00"/></linearGradient>
+    <radialGradient id="g-lglow"><stop offset="0" stop-color="#ffb3d6" stop-opacity=".55"/><stop offset="1" stop-color="#ff7ab8" stop-opacity="0"/></radialGradient>
+  </defs></svg>
+  <div class="sky" aria-hidden="true"></div>
+  <div class="toran" aria-hidden="true"></div>
+  <div class="lantern-wrap left" data-lantern="pink"></div>
+  <div class="lantern-wrap right" data-lantern="gold"></div>
+  <div class="petals"></div>
+  <canvas id="fx"></canvas>
+  <div class="og-wrap">
+    <div class="og-diya" data-diya></div>
+    <div class="og-text">
+      <p class="deva" lang="hi">शुभ दीपावली</p>
+      <p class="kicker">You're invited to</p>
+      <h1 class="title">A Diwali Night</h1>
+      <p class="tagline">of lights, mithai &amp; masti</p>
+      <span class="og-pill">Tap to open your invite ✨</span>
+    </div>
+  </div>
+  <script src="../fx.js"></script>
+  <script>window.Diwali.decorate();</script>
+</body>
+</html>

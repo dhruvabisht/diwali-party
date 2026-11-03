@@ -1,0 +1,5 @@
+# Your private details, the encryption key and the invite link. NEVER commit this folder.
+private/
+
+.DS_Store
+node_modules/

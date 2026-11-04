@@ -159,7 +159,7 @@
     const title = `Diwali Night at ${cfg.host}'s 🪔`;
     const where = (cfg.addressLines || []).join(', ');
     const details = [
-      'Dinner & mithai, card night, music and good conversations.',
+      'Snacks & mithai, card night, music and good conversations.',
       'Dress code: festive & sparkly ✨',
       `${cfg.arrivalNote || ''} ${cfg.phoneDisplay || ''}`.trim(),
     ].join('\n');
@@ -273,7 +273,7 @@
     const opts = {
       method: 'POST',
       // text/plain keeps this a "simple" request; no cookies, no referrer.
-      body: JSON.stringify({ token: cfg.rsvpToken, id: st.id, name: st.name, status: st.status, plusOnes: st.plusOnes, food: st.food, message: st.message }),
+      body: JSON.stringify({ token: cfg.rsvpToken, id: st.id, name: st.name, status: st.status, plusOnes: st.plusOnes, message: st.message }),
       credentials: 'omit',
       cache: 'no-store',
       referrerPolicy: 'no-referrer',
@@ -305,7 +305,6 @@
       name: saved.name || '',
       status: LABEL[saved.status] ? saved.status : '',
       plusOnes: Number(saved.plusOnes) || 0,
-      food: saved.food || '',
       message: saved.message || '',
       sent: !!saved.sent,
     };
@@ -316,7 +315,6 @@
     const step2 = $('#rsvp-step2');
     const rsvpMsg = $('#rsvp-msg');
     const extrasMsg = $('#extras-msg');
-    const foodOther = $('#food-other');
     nameInput.value = st.name;
 
     const first = () => st.name.split(/\s+/)[0];
@@ -325,7 +323,6 @@
     const rsvpText = () => {
       const lines = [`Hi ${cfg.host}! 🪔 RSVP for Diwali night:`, `${st.name}: ${LABEL[st.status]}`];
       if (st.status !== 'no' && st.plusOnes) lines.push(`Bringing: +${st.plusOnes}`);
-      if (st.status !== 'no' && st.food) lines.push(`Food: ${st.food}`);
       if (st.message) lines.push(`Message: ${st.message}`);
       return lines.join('\n');
     };
@@ -336,35 +333,17 @@
         const chip = e.target.closest('.chip');
         if (!chip) return;
         $$('.chip', group).forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-        if (group.dataset.group === 'food') {
-          foodOther.hidden = chip.dataset.value !== 'other';
-          if (!foodOther.hidden) foodOther.focus();
-        }
       });
     });
 
     function loadExtras() {
       $$('[data-group="plusOnes"] .chip').forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.value) === st.plusOnes)));
-      const foodChips = $$('[data-group="food"] .chip');
-      const match = foodChips.find((c) => c.dataset.value === st.food);
-      foodChips.forEach((c) => c.setAttribute('aria-pressed', 'false'));
-      foodOther.hidden = true;
-      if (match) match.setAttribute('aria-pressed', 'true');
-      else if (st.food) {
-        foodChips.find((c) => c.dataset.value === 'other').setAttribute('aria-pressed', 'true');
-        foodOther.hidden = false;
-        foodOther.value = st.food;
-      }
       $('#rsvp-message').value = st.message;
     }
 
     function readExtras() {
       const plus = $('[data-group="plusOnes"] .chip[aria-pressed="true"]');
       st.plusOnes = plus ? Number(plus.dataset.value) : 0;
-      const food = $('[data-group="food"] .chip[aria-pressed="true"]');
-      if (!food) st.food = '';
-      else if (food.dataset.value === 'other') st.food = foodOther.value.trim().slice(0, 120);
-      else st.food = food.dataset.value;
       st.message = $('#rsvp-message').value.trim().slice(0, 600);
     }
 
@@ -404,7 +383,6 @@
       $('#done-text').textContent = text;
 
       $('#extra-plus').hidden = s === 'no';
-      $('#extra-food').hidden = s === 'no';
       $('#msg-label').textContent = s === 'no' ? `A little message for ${cfg.host}?` : "Anything you'd like to share?";
       $('#after-yes').hidden = s !== 'yes';
       setMsg(extrasMsg, '');

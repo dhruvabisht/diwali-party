@@ -269,7 +269,6 @@ input, textarea {
 input::placeholder, textarea::placeholder { color: rgba(199, 166, 185, .7); }
 input:focus, textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(255, 207, 90, .18); }
 textarea { resize: vertical; min-height: 92px; }
-.input-sm { margin-top: 10px; font-size: 16px; padding: 11px 14px; }
 .shake { animation: shake .4s ease; }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 
